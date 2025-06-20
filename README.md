@@ -89,7 +89,7 @@ Easily start your REST Web Services
     kubectl apply -f /devops/k8s/*..yaml
   ```
 
-  ### Instalar prometheus, grafana y configurar alertas:
+  ### Install prometheus, grafana y configure alerts:
 
    ```
       helm upgrade --install prom-stack prometheus-community/kube-prometheus-stack \
@@ -99,20 +99,19 @@ Easily start your REST Web Services
       --set prometheus.prometheusSpec.serviceMonitorNamespaceSelector.matchNames[0]=applications
    ```
 
-   Para la notificacion se debe genear una aplicacion de password de gmail, desde: https://myaccount.google.com/apppasswords 
-   y cambiar en generar un secreto:
-
+   For notification you must have a Gmail password app, generate from: https://myaccount.google.com/apppasswords, then generate secret :
+   
   ```
       kubectl create secret generic alertmanager-gmail-secret \
       --namespace monitoring \
-      --from-literal=smtp_pass='favhnrbmispkkvdm'
+      --from-literal=smtp_pass='HERE-PASSWOD-GENERATE-FROM-GMAIL'
 
       kubectl apply -f /devops/monitoring/*..yaml
   ```
      
-  #### Validar aplicacion: GET: http://localhost:8080/customer
+  #### Validate application: GET: http://localhost:8080/customer
 
-  #### Validar Healths:
+  #### Validate Healths:
 
     kubectl port-forward svc/myapp 8080:8080 -n applications
 
@@ -120,12 +119,18 @@ Easily start your REST Web Services
 
   Metric prometheus:     http://localhost:8080/q/metrics
 
- ## Port-forward para validar prometheus, grafana y alert manager:
+ ## Port-forward for validate prometheus, grafana and alert manager:
 
   #### Prometheus:   
     kubectl port-forward -n monitoring prometheus-prom-stack-kube-prometheus-prometheus-0 9090:9090 
 
   http://localhost:9090/query
+
+   ![Screenshot from running application](images/prometheus.png?raw=true "Screenshot")
+
+   ![Screenshot from running application](images/health-quarkus.png?raw=true "Screenshot")
+
+   ![Screenshot from running application](images/metrics-ds-firing.png?raw=true "Screenshot")
 
   #### Grafana: 
     kubectl port-forward -n monitoring prom-stack-grafana-594f699b5-l5n2g 3000:3000
@@ -143,11 +148,17 @@ Easily start your REST Web Services
     kubectl get secret -n monitoring alertmanager-prom-stack-kube-prometheus-alertmanager \
     -o jsonpath='{.data.alertmanager\.yaml}' | base64 -d
 
+   ![Screenshot from running application](images/alertmanager.png?raw=true "Screenshot")
 
-## Exportar las métricas a Grafana y mostrar paneles con estados
+### View notifications in our email.
 
+  ![Screenshot from running application](images/notification-email.png?raw=true "Screenshot")
 
+## Export metrics to Grafana and display dashboards with statuses
 
+ ![Screenshot from running application](images/dashboard-panel-firing.png?raw=true "Screenshot")
+
+ ![Screenshot from running application](images/micrometer-metrics.png?raw=true "Screenshot")
 
 ## Related Guides
 
