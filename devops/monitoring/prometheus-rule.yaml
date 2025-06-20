@@ -14,6 +14,6 @@ spec:
           for: 30s
           labels:
             severity: critical
-          annotations:
-            summary: "La base de datos está caída"
-            description: "La verificación de salud del datasource falló en la app Quarkus."
+          annotations:            
+            summary: "Datasource caído en el pod {{ $labels.pod }}"
+            description: "La base de datos está caída. Datasource: {{ $labels.datasource }} - Pod: {{ $labels.pod }} - Namespace: {{ $labels.namespace }}"
