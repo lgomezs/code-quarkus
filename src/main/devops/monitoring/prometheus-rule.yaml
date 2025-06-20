@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: quarkus-datasource-rule
+  namespace: monitoring
+  labels:
+    release: prom-stack
+spec:
+  groups:
+    - name: datasource.rules
+      rules:
+        - alert: QuarkusDatasourceDown
+          expr: custom_health_datasource_status == 0
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "La base de datos está caída"
+            description: "La verificación de salud del datasource falló en la app Quarkus."

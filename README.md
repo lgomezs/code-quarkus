@@ -67,3 +67,92 @@ If you want to learn more about building native executables, please consult <htt
 Easily start your REST Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+
+## Deploy image to docker hub
+
+    docker build -f docker/Dockerfile.jvm -t lgomezs/quarkus-app:1.0 .
+    docker login
+    docker push lgomezs/quarkus-app:1.0
+
+## Deploy in minikube
+
+  devops/
+  ├── k8s/
+  │   ├── postgress.yaml           # Genera pod de postgress y el service NOde port.
+  │   ├── init-schema-configmap.yaml             # Crea el SCHEMA de postgress
+  │
+  ├── monitoring/
+  │   ├── servicemonitor.yaml       # Para Prometheus detecte métricas de Quarkus
+  │   ├── prometheus-rule.yaml      # Regla que alerta si la BD está caída
+  │   ├── values.yaml               # Configuración SMTP para enviar correos
+  │  
+  ### Levantar minikube y desplegar la aplicacion:
+
+    minikube start --driver=virtualbox
+    minikube create namespace applications
+    minikube create namespace monitoring
+
+    kubectl apply -f /devops/k8s/*..yaml
+
+  ### Instalar prometheus, grafana y configurar alertas:
+
+      helm upgrade --install prom-stack prometheus-community/kube-prometheus-stack \
+      --namespace monitoring \
+      -f values.yaml \
+      --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+      --set prometheus.prometheusSpec.serviceMonitorNamespaceSelector.matchNames[0]=applications
+
+   Para la notificacion se debe genear una aplicacion de password de gmail, desde: https://myaccount.google.com/apppasswords 
+   y cambiar en values.yaml.
+  
+      -- Esto genera un Secret llamado alertmanager-gmail-secret con la clave smtp_pass
+      kubectl create secret generic alertmanager-gmail-secret \
+      --namespace monitoring \
+      --from-literal=smtp_pass='favhnrbmispkkvdm'
+
+      kubectl apply -f /devops/monitoring/*..yaml
+
+      -- Para modificar
+      helm upgrade --install prom-stack prometheus-community/kube-prometheus-stack \
+      --namespace monitoring \
+      --reset-values \
+      -f values.yaml
+
+  Validar aplicacion: GET: http://localhost:8080/customer
+
+  Validar Health:
+
+    kubectl port-forward svc/myapp 8080:8080 -n applications
+
+    Health check:     http://localhost:8080/q/health/ready
+
+    metric prometheus:     http://localhost:8080/q/metrics
+
+
+ ### Port-forward para validar prometheus, grafana y alert manager:
+
+  #### Prometheus:   
+    kubectl port-forward -n monitoring prometheus-prom-stack-kube-prometheus-prometheus-0 9090:9090 
+
+  http://localhost:9090/query
+
+  #### Grafana: 
+    kubectl port-forward -n monitoring prom-stack-grafana-594f699b5-l5n2g 3000:3000
+  
+  http://localhost:3000/login
+    admin/prom-operator
+
+  #### Alert manager: 
+    kubectl port-forward -n monitoring alertmanager-prom-stack-kube-prometheus-alertmanager-0 9093
+
+  http://localhost:9093
+
+  Ver conf de alert manager
+  kubectl get secret -n monitoring alertmanager-prom-stack-kube-prometheus-alertmanager \
+  -o jsonpath='{.data.alertmanager\.yaml}' | base64 -d
+
+
+## Exportar las métricas a Grafana y mostrar paneles con estados
+
+
+

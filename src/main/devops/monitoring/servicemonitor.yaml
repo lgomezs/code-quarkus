@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: quarkus-servicemonitor
+  namespace: monitoring
+  labels:
+    release: prom-stack
+spec:
+  selector:
+    matchLabels:
+      app: myapp
+  endpoints:
+    - port: http
+      path: /q/metrics
+      interval: 15s
+  namespaceSelector:
+    matchNames:
+      - applications

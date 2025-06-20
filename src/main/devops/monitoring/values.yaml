@@ -1,0 +1,38 @@
+alertmanager:
+  alertmanagerSpec:
+    secrets:
+      - alertmanager-gmail-secret
+  config:
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'lmgomez.saavedra@gmail.com'
+      smtp_auth_username: 'lmgomez.saavedra@gmail.com'
+      smtp_auth_password_file: '/etc/alertmanager/secrets/alertmanager-gmail-secret/smtp_pass'
+      ##smtp_auth_password: '<CLAVE_APP_GMAIL>'
+    route:
+      receiver: gmail-notifications
+      group_wait: 10s
+      group_interval: 30s
+      repeat_interval: 1h
+      routes:
+        - matchers:
+            - alertname = "Watchdog"
+          receiver: gmail-notifications
+    receivers:
+      - name: gmail-notifications
+        email_configs:
+          - to: 'lmgomez.saavedra@gmail.com'
+    templates:
+      - '/etc/alertmanager/config/*.tmpl'
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector:
+      matchNames:
+        - applications
+    alerting:
+      alertmanagers:
+        - namespace: monitoring
+          name: prom-stack-alertmanager
+          port: web
