@@ -53,13 +53,6 @@ You can then execute your native executable with: `./target/code-with-quarkus-1.
 
 If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
 
-## Related Guides
-
-- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Document your REST APIs with OpenAPI - comes with Swagger UI
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
-- Reactive PostgreSQL client ([guide](https://quarkus.io/guides/reactive-sql-clients)): Connect to the PostgreSQL database using the reactive pattern
-- Blaze-Persistence ([guide](https://quarkus.io/guides/blaze-persistence)): Advanced SQL support for JPA and Entity-Views as efficient DTOs
-
 ## Provided Code
 
 ### REST
@@ -76,7 +69,7 @@ Easily start your REST Web Services
 
 ## Deploy in minikube
 
-  devops/
+ ``` devops/
   ├── k8s/
   │   ├── postgress.yaml           # Genera pod de postgress y el service NOde port.
   │   ├── init-schema-configmap.yaml             # Crea el SCHEMA de postgress
@@ -86,50 +79,48 @@ Easily start your REST Web Services
   │   ├── prometheus-rule.yaml      # Regla que alerta si la BD está caída
   │   ├── values.yaml               # Configuración SMTP para enviar correos
   │  
-  ### Levantar minikube y desplegar la aplicacion:
+```
 
+  ```
     minikube start --driver=virtualbox
     minikube create namespace applications
     minikube create namespace monitoring
 
     kubectl apply -f /devops/k8s/*..yaml
+  ```
 
   ### Instalar prometheus, grafana y configurar alertas:
 
+   ```
       helm upgrade --install prom-stack prometheus-community/kube-prometheus-stack \
       --namespace monitoring \
       -f values.yaml \
       --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
       --set prometheus.prometheusSpec.serviceMonitorNamespaceSelector.matchNames[0]=applications
+   ```
 
    Para la notificacion se debe genear una aplicacion de password de gmail, desde: https://myaccount.google.com/apppasswords 
-   y cambiar en values.yaml.
-  
-      -- Esto genera un Secret llamado alertmanager-gmail-secret con la clave smtp_pass
+   y cambiar en generar un secreto:
+
+  ```
       kubectl create secret generic alertmanager-gmail-secret \
       --namespace monitoring \
       --from-literal=smtp_pass='favhnrbmispkkvdm'
 
       kubectl apply -f /devops/monitoring/*..yaml
+  ```
+     
+  #### Validar aplicacion: GET: http://localhost:8080/customer
 
-      -- Para modificar
-      helm upgrade --install prom-stack prometheus-community/kube-prometheus-stack \
-      --namespace monitoring \
-      --reset-values \
-      -f values.yaml
-
-  Validar aplicacion: GET: http://localhost:8080/customer
-
-  Validar Health:
+  #### Validar Healths:
 
     kubectl port-forward svc/myapp 8080:8080 -n applications
 
-    Health check:     http://localhost:8080/q/health/ready
+  Health check:     http://localhost:8080/q/health/ready
 
-    metric prometheus:     http://localhost:8080/q/metrics
+  Metric prometheus:     http://localhost:8080/q/metrics
 
-
- ### Port-forward para validar prometheus, grafana y alert manager:
+ ## Port-forward para validar prometheus, grafana y alert manager:
 
   #### Prometheus:   
     kubectl port-forward -n monitoring prometheus-prom-stack-kube-prometheus-prometheus-0 9090:9090 
@@ -147,12 +138,20 @@ Easily start your REST Web Services
 
   http://localhost:9093
 
-  Ver conf de alert manager
-  kubectl get secret -n monitoring alertmanager-prom-stack-kube-prometheus-alertmanager \
-  -o jsonpath='{.data.alertmanager\.yaml}' | base64 -d
+  Ver conf de alert manager:
+  
+    kubectl get secret -n monitoring alertmanager-prom-stack-kube-prometheus-alertmanager \
+    -o jsonpath='{.data.alertmanager\.yaml}' | base64 -d
 
 
 ## Exportar las métricas a Grafana y mostrar paneles con estados
 
 
 
+
+## Related Guides
+
+- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Document your REST APIs with OpenAPI - comes with Swagger UI
+- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
+- Reactive PostgreSQL client ([guide](https://quarkus.io/guides/reactive-sql-clients)): Connect to the PostgreSQL database using the reactive pattern
+- Blaze-Persistence ([guide](https://quarkus.io/guides/blaze-persistence)): Advanced SQL support for JPA and Entity-Views as efficient DTOs
