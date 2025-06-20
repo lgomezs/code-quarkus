@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: postgres
+  namespace: applications
+  labels:
+    app: postgres
+spec:
+  containers:
+    - name: postgres
+      image: postgres:15
+      env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        - name: POSTGRES_DB
+          value: customerDB
+      ports:
+        - containerPort: 5432
+      volumeMounts:
+        - name: init-volume
+          mountPath: /docker-entrypoint-initdb.d/
+  volumes:
+    - name: init-volume
+      configMap:
+        name: postgres-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: applications
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+
