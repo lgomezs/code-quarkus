@@ -1,8 +1,11 @@
+
 # code-with-quarkus
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+Monitoring system that detects outages in a Quarkus application's data source and automatically notifies the technical team via email.
+
+![Screenshot from running application](images/architecture.png?raw=true "Screenshot")
 
 ## Running the application in dev mode
 
