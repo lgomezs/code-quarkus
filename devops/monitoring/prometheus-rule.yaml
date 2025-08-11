@@ -11,9 +11,10 @@ spec:
       rules:
         - alert: QuarkusDatasourceDown
           expr: custom_health_datasource_status == 0
-          for: 30s
+          for: 5s
           labels:
             severity: critical
-          annotations:            
+            #team: quarku #lo marco para solo enviar este tipo de alertas a un canal específico
+          annotations:
             summary: "Datasource caído en el pod {{ $labels.pod }}"
             description: "La base de datos está caída. Datasource: {{ $labels.datasource }} - Pod: {{ $labels.pod }} - Namespace: {{ $labels.namespace }}"

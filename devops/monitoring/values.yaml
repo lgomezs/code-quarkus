@@ -17,6 +17,7 @@ alertmanager:
       routes:
         - matchers:
             - alertname = "Watchdog"
+            #- team = "quarku"
           receiver: gmail-notifications
     receivers:
       - name: gmail-notifications
@@ -26,6 +27,9 @@ alertmanager:
       - '/etc/alertmanager/config/*.tmpl'
 
 prometheus:
+  metric_relabel_configs:
+    - target_label: application
+      replacement: my-quarkus-app
   prometheusSpec:
     serviceMonitorSelectorNilUsesHelmValues: false
     serviceMonitorNamespaceSelector:

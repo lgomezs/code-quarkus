@@ -64,11 +64,44 @@ Easily start your REST Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
 
+# Run application in local
+
+ Run docker postgress.
+
+    docker-compose down -v
+    docker-compose up -d
+
+    mvn clean install -DskipTests
+
+ Metrics-> http://localhost:8080/q/metrics
+
+ Validate application: GET: http://localhost:8080/customer
+
 ## Deploy image to docker hub
 
-    docker build -f docker/Dockerfile.jvm -t lgomezs/quarkus-app:1.0 .
+    docker build -f src/main/docker/Dockerfile.jvm -t lgomezs/quarkus-app:1.19 .
     docker login
-    docker push lgomezs/quarkus-app:1.0
+    docker push lgomezs/quarkus-app:1.19
+
+## Install minikube grafana y prometheus 
+
+```
+    Install minikube and kubectl:
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+        
+    minikube start
+    kubectl create namespace applications
+    kubectl create namespace monitoring
+```
+       helm upgrade --install prom-stack prometheus-community/kube-prometheus-stack \
+        --namespace monitoring \
+        -f values.yaml \
+        --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+        --set prometheus.prometheusSpec.serviceMonitorNamespaceSelector.matchNames[0]=applications
+
+Run prometheus en http://localhost:9090/
+-> kubectl port-forward -n monitoring prometheus-prom-stack-kube-prometheus-prometheus-0 9090:9090
 
 ## Deploy in minikube
 
@@ -84,50 +117,39 @@ Easily start your REST Web Services
   │  
 ```
 
-  ```
-    minikube start --driver=virtualbox
-    minikube create namespace applications
-    minikube create namespace monitoring
+Get  IP_DATASOURCE, ip datasource, change it value in env microservice.yaml.
 
-    kubectl apply -f /devops/k8s/*..yaml
-  ```
+    #kubectl apply -f /devops/k8s/*..yaml
+    kubectl apply -f /devops/k8s/ --recursive
 
-  ### Install prometheus, grafana y configure alerts:
+Validate:  
 
-   ```
-      helm upgrade --install prom-stack prometheus-community/kube-prometheus-stack \
-      --namespace monitoring \
-      -f values.yaml \
-      --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
-      --set prometheus.prometheusSpec.serviceMonitorNamespaceSelector.matchNames[0]=applications
-   ```
+http://localhost:8080/q/health/ready
+http://localhost:8080/q/metrics
+
+swaguer: http://localhost:8080/q/swaggerui/
+
+#### Validate Healths from deploy minikube
+
+    kubectl port-forward svc/myapp 8080:8080 -n applications
+
+Health check:     http://localhost:8080/q/health/ready
+
+Metric prometheus:     http://localhost:8080/q/metrics
+
+### Configure alerts
 
    For notification you must have a Gmail password app, generate from: https://myaccount.google.com/apppasswords, then generate secret :
    
   ```
       kubectl create secret generic alertmanager-gmail-secret \
       --namespace monitoring \
-      --from-literal=smtp_pass='HERE-PASSWOD-GENERATE-FROM-GMAIL'
+      --from-literal=smtp_pass='password-aqui'
 
       kubectl apply -f /devops/monitoring/*..yaml
-  ```
-     
-  #### Validate application: GET: http://localhost:8080/customer
-
-  #### Validate Healths:
-
-    kubectl port-forward svc/myapp 8080:8080 -n applications
-
-  Health check:     http://localhost:8080/q/health/ready
-
-  Metric prometheus:     http://localhost:8080/q/metrics
+  ```     
 
  ## Port-forward for validate prometheus, grafana and alert manager:
-
-  #### Prometheus:   
-    kubectl port-forward -n monitoring prometheus-prom-stack-kube-prometheus-prometheus-0 9090:9090 
-
-  http://localhost:9090/query
 
    ![Screenshot from running application](images/prometheus.png?raw=true "Screenshot")
 
@@ -136,7 +158,8 @@ Easily start your REST Web Services
    ![Screenshot from running application](images/metrics-ds-firing.png?raw=true "Screenshot")
 
   #### Grafana: 
-    kubectl port-forward -n monitoring prom-stack-grafana-594f699b5-l5n2g 3000:3000
+    
+    kubectl port-forward -n monitoring prom-stack-grafana-XXXXXX 3000:3000
   
   http://localhost:3000/login
     admin/prom-operator
@@ -152,6 +175,40 @@ Easily start your REST Web Services
     -o jsonpath='{.data.alertmanager\.yaml}' | base64 -d
 
    ![Screenshot from running application](images/alertmanager.png?raw=true "Screenshot")
+
+##  Install Loki con Helm
+
+    helm repo add grafana https://grafana.github.io/helm-charts
+    helm repo update
+    helm install loki grafana/loki \
+        --namespace monitoring \
+        -f values.yaml
+
+    helm install promtail grafana/promtail \
+        --namespace monitoring \
+        -f promtail-values.yaml
+
+     helm upgrade promtail grafana/promtail \
+        --namespace monitoring \
+        -f promtail-values.yaml
+
+-- validate promntail
+
+     kubectl get pods -n monitoring -l app.kubernetes.io/name=promtail
+     kubectl logs -n monitoring <pod-promtail>
+
+## Install tempo 
+
+    helm install tempo grafana/tempo \
+    --namespace monitoring
+
+    kubectl get svc -n monitoring
+
+## Connect Grafana to Loki
+
+  Uri data source loki: http://loki.monitoring.svc.cluster.local:3100
+
+  IN Grafana: Configuration → Data Sources → Loki
 
 ### View notifications in our email.
 

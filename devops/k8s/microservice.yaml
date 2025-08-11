@@ -18,7 +18,7 @@ spec:
       targetPort: 8080
       nodePort: 30089 # puedes elegir entre 30000-32767
       name: http
-   
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,14 +37,16 @@ spec:
     spec:
       containers:
         - name: myapp
-          image: lgomezs/quarkus-app:1.13
+          image: lgomezs/quarkus-app:1.19
           ports:
             - containerPort: 8080
           env:
             - name: QUARKUS_PROFILE
               value: dev
             - name: IP_DATASOURCE
-              value: 10.109.172.102
+              value: 10.109.160.108
+            - name: IP_TEMPO
+              value: http://tempo.monitoring:4317
           livenessProbe:
             httpGet:
               path: /q/health/live

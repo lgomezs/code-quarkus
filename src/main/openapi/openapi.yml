@@ -1,0 +1,86 @@
+openapi: 3.0.3
+info:
+  title: Generated API
+  version: "1.0"
+paths:
+  /customer:
+    post:
+      tags:
+        - customer
+      operationId: "createCustomer"
+      # parámetros comentados (puedes activarlos si quieres)
+      # parameters:
+      #   - name: 'orderId'
+      #     in: 'path'
+      #     description: 'ID order'
+      #     schema:
+      #       type: integer
+      #     required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json: {}
+
+    get:
+      tags:
+        - customer
+      operationId: "findAllCustomers"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerRequest'
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID of the product
+        product:
+          type: integer
+          description: product
+        name:
+          type: string
+          description: name of the product
+        code:
+          type: string
+          description: code of the product
+        description:
+          type: string
+          description: description of the product
+    CustomerRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID of the customer
+        code:
+          type: string
+          description: code customer
+        accountNumber:
+          type: string
+        names:
+          type: string
+        surname:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'

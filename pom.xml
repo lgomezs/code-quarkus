@@ -35,6 +35,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -44,6 +51,18 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest</artifactId>
         </dependency>
+
+        <!-- OpenAPI Generator -->
+        <dependency>
+            <groupId>io.quarkiverse.openapi.generator</groupId>
+            <artifactId>quarkus-openapi-generator</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-client-jackson</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-openapi</artifactId>
@@ -89,7 +108,6 @@
             <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>
@@ -105,6 +123,32 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.30</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- OpenTelemetry para trazas -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-opentelemetry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-opentelemetry-exporter-otlp</artifactId>
+            <version>3.12.3</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.5.5.Final</version> <!-- usa la versión estable más reciente -->
+        </dependency>
+
+        <!-- Para que el procesador de anotaciones funcione en build -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.5.5.Final</version>
             <scope>provided</scope>
         </dependency>
 

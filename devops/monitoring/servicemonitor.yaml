@@ -13,6 +13,9 @@ spec:
     - port: http
       path: /q/metrics
       interval: 15s
+      relabelings:
+        - targetLabel: application
+          replacement: my-quarkus-app
   namespaceSelector:
     matchNames:
       - applications

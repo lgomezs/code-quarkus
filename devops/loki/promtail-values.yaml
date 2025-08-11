@@ -1,0 +1,57 @@
+config:
+  server:
+    http_listen_port: 3101
+    grpc_listen_port: 0
+
+  positions:
+    filename: /run/promtail/positions.yaml
+
+  clients:
+    - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+
+  scrape_configs:
+    - job_name: kubernetes-pods
+      kubernetes_sd_configs:
+        - role: pod
+          namespaces:
+            names:
+              - applications
+
+      pipeline_stages:
+        # Agrupar logs multilinea
+        - multiline:
+            firstline: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
+            max_wait_time: 3s
+
+        # Parsear JSON si viene así
+        - json:
+            expressions:
+              log: log
+
+        # Extraer timestamp, nivel y mensaje
+        - regex:
+            source: log
+            expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+(?P<level>[A-Z]+)\s+(?P<msg>.*)$'
+
+        # Filtrar solo logs con nivel reconocido
+        - match:
+            selector: '{level=~"INFO|WARN|ERROR|DEBUG"}'
+            stages:
+              - template:
+                  source: log
+                  template: '{{ .timestamp }} {{ .level }} {{ .msg }}'
+
+        # Etiquetas útiles para Loki
+        - labels:
+            level:
+            namespace: namespace
+            pod: pod
+            container: container
+
+extraVolumes:
+  - name: positions
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: positions
+    mountPath: /run/promtail
