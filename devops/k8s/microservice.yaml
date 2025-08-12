@@ -37,14 +37,14 @@ spec:
     spec:
       containers:
         - name: myapp
-          image: lgomezs/quarkus-app:1.19
+          image: lgomezs/quarkus-app:2.0
           ports:
             - containerPort: 8080
           env:
             - name: QUARKUS_PROFILE
               value: dev
             - name: IP_DATASOURCE
-              value: 10.109.160.108
+              value: 10.100.81.70
             - name: IP_TEMPO
               value: http://tempo.monitoring:4317
           livenessProbe:

@@ -35,6 +35,7 @@ prometheus:
     serviceMonitorNamespaceSelector:
       matchNames:
         - applications
+        - monitoring
     alerting:
       alertmanagers:
         - namespace: monitoring

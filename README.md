@@ -79,11 +79,11 @@ Easily start your REST Web Services
 
 ## Deploy image to docker hub
 
-    docker build -f src/main/docker/Dockerfile.jvm -t lgomezs/quarkus-app:1.19 .
+    docker build -f src/main/docker/Dockerfile.jvm -t lgomezs/quarkus-app:2.0 .
     docker login
-    docker push lgomezs/quarkus-app:1.19
+    docker push lgomezs/quarkus-app:2.0
 
-## Install minikube grafana y prometheus 
+## Install minikube grafana, tempo, loki y prometheus en minikube
 
 ```
     Install minikube and kubectl:
@@ -94,11 +94,41 @@ Easily start your REST Web Services
     kubectl create namespace applications
     kubectl create namespace monitoring
 ```
+   Install prometheus y grafana:
+
        helm upgrade --install prom-stack prometheus-community/kube-prometheus-stack \
         --namespace monitoring \
-        -f values.yaml \
+        -f devops/monitoring/values.yaml \
         --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
         --set prometheus.prometheusSpec.serviceMonitorNamespaceSelector.matchNames[0]=applications
+  
+   Install Loki:
+
+        helm repo add grafana https://grafana.github.io/helm-charts
+        helm repo update
+        helm install loki grafana/loki \
+            --namespace monitoring \
+            -f devops/loki/values.yaml
+
+        helm install promtail grafana/promtail \
+            --namespace monitoring \
+            -f devops/loki/promtail-values.yaml
+
+        helm upgrade promtail grafana/promtail \
+            --namespace monitoring \
+            -f devops/loki/promtail-values.yaml
+
+   -- validate promntail
+
+         kubectl get pods -n monitoring -l app.kubernetes.io/name=promtail
+         kubectl logs -n monitoring <pod-promtail>
+
+  Validate -> helm list -n monitoring
+
+   Install tempo:
+
+        helm install tempo grafana/tempo -f devops/tempo/values.yaml --namespace monitoring
+        kubectl get svc -n monitoring
 
 Run prometheus en http://localhost:9090/
 -> kubectl port-forward -n monitoring prometheus-prom-stack-kube-prometheus-prometheus-0 9090:9090
@@ -176,39 +206,17 @@ Metric prometheus:     http://localhost:8080/q/metrics
 
    ![Screenshot from running application](images/alertmanager.png?raw=true "Screenshot")
 
-##  Install Loki con Helm
 
-    helm repo add grafana https://grafana.github.io/helm-charts
-    helm repo update
-    helm install loki grafana/loki \
-        --namespace monitoring \
-        -f values.yaml
 
-    helm install promtail grafana/promtail \
-        --namespace monitoring \
-        -f promtail-values.yaml
-
-     helm upgrade promtail grafana/promtail \
-        --namespace monitoring \
-        -f promtail-values.yaml
-
--- validate promntail
-
-     kubectl get pods -n monitoring -l app.kubernetes.io/name=promtail
-     kubectl logs -n monitoring <pod-promtail>
-
-## Install tempo 
-
-    helm install tempo grafana/tempo \
-    --namespace monitoring
-
-    kubectl get svc -n monitoring
 
 ## Connect Grafana to Loki
 
   Uri data source loki: http://loki.monitoring.svc.cluster.local:3100
 
   IN Grafana: Configuration → Data Sources → Loki
+
+  For tempo: http://tempo.monitoring:3200
+
 
 ### View notifications in our email.
 

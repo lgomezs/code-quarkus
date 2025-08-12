@@ -50,8 +50,9 @@ config:
 
 extraVolumes:
   - name: positions
-    emptyDir: {}
+    persistentVolumeClaim:
+      claimName: promtail-positions-pvc
 
-extraVolumeMounts:
-  - name: positions
-    mountPath: /run/promtail
+#extraVolumeMounts:
+ # - name: positions
+  #  mountPath: /run/promtail
